@@ -9,6 +9,16 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
 import 'font-awesome/css/font-awesome.min.css'
 
+const EventBus = new Vue() // шина событий
+
+Object.defineProperties(Vue.prototype, {
+  $bus: {
+    get () {
+      return EventBus
+    }
+  }
+})
+
 Vue.config.productionTip = false
 
 /* eslint-disable no-new */

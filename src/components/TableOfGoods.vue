@@ -1,3 +1,4 @@
+
 <style scoped>
   .create-item {
     margin-top: 50px;
@@ -27,7 +28,7 @@
           <th scope="col">Название</th>
           <th scope="col">Количество</th>
           <th scope="col">Цена</th>
-          <th scope="col" class="text-center">Удалить</th>
+          <th scope="col" class="text-center">Корректировка</th>
         </tr>
       </thead>
       <tbody>
@@ -37,7 +38,8 @@
           <td>{{item.quantity}}</td>
           <td>{{item.price}} руб.</td>
           <td class="text-center">
-            <a href="javascript:void(0)" class="text-danger" @click="removeItem(item.id)"><i class="fa fa-times" aria-hidden="true"></i></a>
+            <a href="javascript:void(0)" class="text-success" @click="modifyItem(item.id)" title="Редактировать"><i class="fa fa-lg fa-file-text" aria-hidden="true"></i></a>
+            <a href="javascript:void(0)" class="text-danger" @click="removeItem(item.id)" title="Удалить"><i class="fa fa-lg fa-times" aria-hidden="true"></i></a>
           </td>
         </tr>
       </tbody>
@@ -50,32 +52,32 @@
     </table>
     <div class="alert alert-danger" role="alert" v-if="goodsData.length === 0">
       В данный момент нет данных для отображения.
-      Но вы можете <a href="javascript:void(0)" class="alert-link" @click="showCreateForm()">добавить</a> их или <a href="javascript:void(0)" class="alert-link" @click="resetData()">восстановить</a> начальные данные!
+      Но вы можете <a href="javascript:void(0)" class="alert-link" @click="createItem()">добавить</a> их или <a href="javascript:void(0)" class="alert-link" @click="resetData()">восстановить</a> начальные данные!
     </div>
     <div class="create-item" v-if="formShown">
       <form>
         <div class="form-group row">
           <label for="inputGoodsName" class="col-xs-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 col-form-label">Название</label>
           <div class="col-xs-6 col-sm-6 col-md-9 col-lg-9 col-xl-9">
-            <input type="text" class="form-control" id="inputGoodsName" placeholder="Введите название товара" v-model="newItem.name" />
+            <input type="text" class="form-control" id="inputGoodsName" placeholder="Введите название товара" v-model="theItem.name" />
           </div>
         </div>
         <div class="form-group row">
           <label for="inputGoodsQuantity" class="col-xs-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 col-form-label">Количество</label>
           <div class="col-xs-6 col-sm-6 col-md-9 col-lg-9 col-xl-9">
-            <input type="text" class="form-control" id="inputGoodsQuantity" placeholder="Введите количество товара" v-model="newItem.quantity" />
+            <input type="text" class="form-control" id="inputGoodsQuantity" placeholder="Введите количество товара" v-model="theItem.quantity" />
           </div>
         </div>
         <div class="form-group row">
           <label for="inputGoodsPrice" class="col-xs-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 col-form-label">Цена (руб.)</label>
           <div class="col-xs-6 col-sm-6 col-md-9 col-lg-9 col-xl-9">
-            <input type="text" class="form-control" id="inputGoodsPrice" placeholder="Введите цену товара" v-model="newItem.price" />
+            <input type="text" class="form-control" id="inputGoodsPrice" placeholder="Введите цену товара" v-model="theItem.price" />
           </div>
         </div>
         <div class="form-group row buttons-row">
           <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
-            <button type="button" class="btn btn-success" @click="saveData()">Добавить</button>
-            <button type="button" class="btn btn-secondary" @click="hideCreateForm()">Отмена</button>
+            <button type="button" class="btn btn-success" @click="saveItem()">{{ !theItem.id ? 'Добавить' : 'Сохранить' }}</button>
+            <button type="button" class="btn btn-secondary" @click="hideRecordForm()">Отмена</button>
           </div>
         </div>
       </form>
@@ -84,7 +86,6 @@
 </template>
 
 <script>
-  import EventBus from '@/eventBus'
   import mixins from '@/mixins'
 
   const GOODS_DATA = [ // начальные данные для таблицы
@@ -120,7 +121,8 @@
       return {
         goodsData: [], // список товаров
         formShown: false, // признак показа формы
-        newItem: { // модель для добавления нового товара
+        theItem: { // модель для создания и редактирования товара
+          id: null,
           name: '',
           quantity: '',
           price: ''
@@ -138,6 +140,29 @@
       }
     },
     methods: {
+      createItem () { // создание новой записи в таблице
+        this.theItem.id = null
+        this.theItem.name = ''
+        this.theItem.quantity = ''
+        this.theItem.price = ''
+        this.showRecordForm()
+      },
+      modifyItem (id) { // редактирование записи в таблице
+        let found = false
+        $.each(this.goodsData, i => {
+          if (this.goodsData[i].id === id) {
+            this.theItem.id = this.goodsData[i].id
+            this.theItem.name = this.goodsData[i].name
+            this.theItem.quantity = this.goodsData[i].quantity
+            this.theItem.price = this.goodsData[i].price
+            found = true
+            return false
+          }
+        })
+        if (found) {
+          this.showRecordForm()
+        }
+      },
       removeItem (id) { // удаление строки из таблицы
         let goodsData = []
         $.each(this.goodsData, i => {
@@ -147,57 +172,68 @@
         })
         this.goodsData = goodsData
       },
-      showCreateForm () { // открываем форму для добавления товара
+      showRecordForm () { // открываем форму для добавления товара
         this.formShown = true
         this.$nextTick(() => {
           $('html, body').animate({ scrollTop: $(document).height() - $(window).height() })
         })
       },
-      hideCreateForm () { // скрываем форму для добавления товара
+      hideRecordForm () { // скрываем форму для добавления товара
         this.formShown = false
         this.$nextTick(() => {
           $('html, body').animate({ scrollTop: 0 })
         })
       },
-      saveData () { // сохранение новой позиции
+      saveItem () { // сохранение новой позиции
         // простая валидация формы
-        if (!this.newItem.name) {
+        if (!this.theItem.name) {
           window.alert('Пожалуйста, введите корректное название товара!')
           return
         }
-        let quantity = parseInt(this.newItem.quantity)
+        let quantity = parseInt(this.theItem.quantity)
         if (isNaN(quantity)) {
           window.alert('Пожалуйста, введите корректное количество товара!')
           return
         }
-        let price = parseInt(this.newItem.price)
+        let price = parseInt(this.theItem.price)
         if (isNaN(price)) {
           window.alert('Пожалуйста, введите корректную цену товара!')
           return
         }
 
-        // сбор всех идентификаторов товара в хэш
-        let goodsData = []
-        let idPool = []
-        $.each(this.goodsData, i => {
-          idPool.push(this.goodsData[i].id)
-          goodsData.push(this.goodsData[i])
-        })
+        if (!this.theItem.id) { // добавление нового товара
+          // сбор всех идентификаторов товара в хэш
+          let goodsData = []
+          let idPool = []
+          $.each(this.goodsData, i => {
+            idPool.push(this.goodsData[i].id)
+            goodsData.push(this.goodsData[i])
+          })
 
-        // добавляем новую позицию в список
-        let id = this.nextId(idPool) // получаем id для нового товара
-        goodsData.push({
-          id: id,
-          name: this.newItem.name,
-          quantity: this.newItem.quantity,
-          price: this.newItem.price
-        })
-        this.goodsData = goodsData
-        this.hideCreateForm() // прячем форму добавления товара
+          // добавляем новую позицию в список
+          let id = this.nextId(idPool) // получаем id для нового товара
+          goodsData.push({
+            id: id,
+            name: this.theItem.name,
+            quantity: this.theItem.quantity,
+            price: this.theItem.price
+          })
+          this.goodsData = goodsData
+        } else { // редактирование товара
+          $.each(this.goodsData, i => {
+            if (this.goodsData[i].id === this.theItem.id) {
+              this.goodsData[i].name = this.theItem.name
+              this.goodsData[i].quantity = this.theItem.quantity
+              this.goodsData[i].price = this.theItem.price
+              return false
+            }
+          })
+        }
+        this.hideRecordForm() // прячем форму редактирования товара
       },
       resetData () {
         this.goodsData = $.extend(true, {}, GOODS_DATA) // заполнение текущих данных стартовыми значениями
-        this.hideCreateForm() // прячем форму добавления товара
+        this.hideRecordForm() // прячем форму редактирования товара
       }
     },
     beforeMount () {
@@ -205,10 +241,10 @@
       this.goodsData = $.extend(true, {}, GOODS_DATA)
 
       // подписка на события от главного меню
-      EventBus.$on('create-data', () => {
-        this.showCreateForm()
+      this.$bus.$on('create-item', () => {
+        this.createItem()
       })
-      EventBus.$on('reset-data', () => {
+      this.$bus.$on('reset-data', () => {
         this.resetData()
       })
     }
