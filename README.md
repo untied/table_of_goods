@@ -1,6 +1,6 @@
-# table-of-goods
+# Table of Goods
 
-> Example project
+> An example of the single page site made in Vue.js
 
 ## Build Setup
 
