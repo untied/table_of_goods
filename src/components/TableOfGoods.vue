@@ -1,5 +1,8 @@
 
 <style scoped>
+  .table .table__goods-total {
+    font-weight: normal;
+  }
   .create-item {
     margin-top: 50px;
     margin-left: auto;
@@ -13,7 +16,7 @@
   .buttons-row {
     margin-top: 30px;
   }
-  .buttons-row button {
+  .buttons-row .buttons-row__button {
     width: 100px;
   }
 </style>
@@ -46,7 +49,7 @@
       <thead class="thead-light">
         <tr>
           <th scope="row" colspan="3" class="text-right">Итого:</th>
-          <th colspan="2" style="font-weight:normal">{{goodsTotal}} руб.</th>
+          <th colspan="2" class="table__goods-total">{{goodsTotal}} руб.</th>
         </tr>
       </thead>
     </table>
@@ -54,7 +57,7 @@
       В данный момент нет данных для отображения.
       Но вы можете <a href="javascript:void(0)" class="alert-link" @click="createItem()">добавить</a> их или <a href="javascript:void(0)" class="alert-link" @click="resetData()">восстановить</a> начальные данные!
     </div>
-    <div class="create-item" v-if="formShown">
+    <div class="create-item" v-show="formShown">
       <form>
         <div class="form-group row">
           <label for="inputGoodsName" class="col-xs-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 col-form-label">Название</label>
@@ -76,8 +79,8 @@
         </div>
         <div class="form-group row buttons-row">
           <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
-            <button type="button" class="btn btn-success" @click="saveItem()">{{ !theItem.id ? 'Добавить' : 'Сохранить' }}</button>
-            <button type="button" class="btn btn-secondary" @click="hideRecordForm()">Отмена</button>
+            <button type="button" class="btn btn-success buttons-row__button" @click="saveItem()">{{ !theItem.id ? 'Добавить' : 'Сохранить' }}</button>
+            <button type="button" class="btn btn-secondary buttons-row__button" @click="hideRecordForm()">Отмена</button>
           </div>
         </div>
       </form>
